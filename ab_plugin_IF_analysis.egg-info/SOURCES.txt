@@ -1,0 +1,10 @@
+LICENSE.txt
+README.md
+setup.py
+ab_plugin_IF_analysis/__init__.py
+ab_plugin_IF_analysis.egg-info/PKG-INFO
+ab_plugin_IF_analysis.egg-info/SOURCES.txt
+ab_plugin_IF_analysis.egg-info/dependency_links.txt
+ab_plugin_IF_analysis.egg-info/top_level.txt
+ab_plugin_IF_analysis/layouts/tabs/__init__.py
+ab_plugin_IF_analysis/layouts/tabs/right.py

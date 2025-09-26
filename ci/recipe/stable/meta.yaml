@@ -1,0 +1,32 @@
+package:
+  name: ab-plugin-plugin_name
+  version: "{{ GIT_DESCRIBE_TAG }}"
+
+source:
+  git_rev: main
+  git_url: plugin_url
+
+build:
+  noarch: python
+  number: 0
+  script: "{{ PYTHON }} -m pip install . --no-deps --ignore-installed -vv "
+
+requirements:
+  build:
+    - python =3.9
+    - setuptools
+    - conda-verify
+  run:
+    - activity-browser =2.8
+
+about:
+  home: plugin_url
+  license: LGPL3+
+  license_family: LGPL
+  license_file: LICENSE.txt
+  summary: one_line_description
+  description: |
+    The [Activity Browser](https://github.com/LCA-ActivityBrowser/activity-browser)
+    is a graphical user interface for the [brightway2](https://brightway.dev/)
+    advanced life cycle assessment framework.
+    one_line_description
