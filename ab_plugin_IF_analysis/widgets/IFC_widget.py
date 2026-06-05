@@ -113,10 +113,11 @@ class CalculWidget(QWidget):
             "('EF v3.0', 'material resources: metals/minerals', 'abiotic depletion potential (ADP): elements (ultimate reserves)')",
         ]
         self.ef_method_combo.set_items(top_methods + sorted(list_methods))
-        # --- init methods if ---
-        excel_path = r"C:\Users\mael.mouhoub\Documents\2-Recherche\5-Git_repositories\ab-plugin-IF_analysis\ab_plugin_IF_analysis\utils\method_input.xlsx"        
-        self.if_panda = pd.read_excel(excel_path)
-        self.update_if_method(self.if_panda)
+        # # --- init methods if ---
+        self.if_panda = {}
+        # excel_path = r"C:\Users\mael.mouhoub\Documents\2-Recherche\5-Git_repositories\ab-plugin-IF_analysis\ab_plugin_IF_analysis\utils\method_input.xlsx"        
+        # self.if_panda = pd.read_excel(excel_path)
+        # self.update_if_method(self.if_panda)
 
     def update_activities(self, db_name):
         """Update the activity ComboBox when a database is selected."""
@@ -147,7 +148,7 @@ class CalculWidget(QWidget):
         
         #method_if = pd.read_excel("plugin_test/utils/method_input.xlsx") #"No method" #ast.literal_eval(self.method_combo.current_text())
         method_if_name = self.if_method_combo.current_text()
-        method_if = self.if_panda[self.if_panda["method"] == method_if_name]
+        method_if = self.if_panda[method_if_name]["data"] #[self.if_panda["method"] == method_if_name]
         
         print(f"Sélection: Database : {activity_key[0]}, Activity : {activity_key[1]} , Method_ef : {str(method_ef)}, Method_if : {method_if_name}")
         
@@ -163,12 +164,12 @@ class CalculWidget(QWidget):
         self.result_ef_if_signal.emit(result_ef_if)
         
     def update_if_method(self,if_method_input):
-        list_methods_if = list(if_method_input["method"].unique())
+        list_methods_if = if_method_input.keys() #list(if_method_input["method"].unique())
         top_methods = [
         #     "No method",
         ]
         self.if_method_combo.set_items(top_methods + sorted(list_methods_if))
-        #self.if_panda = if_method_input
+        self.if_panda = if_method_input
         
     def get_selected_activity(self):
         """Return the selected activity as a tuple (database, key)."""

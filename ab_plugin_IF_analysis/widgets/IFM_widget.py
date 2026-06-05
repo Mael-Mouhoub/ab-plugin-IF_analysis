@@ -56,7 +56,7 @@ class MethodWidget(QtWidgets.QWidget):
         # Données améliorées pour chaque méthode : nom, unité, nombre de CF, et données
         excel_path = r"C:\Users\mael.mouhoub\Documents\2-Recherche\5-Git_repositories\ab-plugin-IF_analysis\ab_plugin_IF_analysis\utils\method_input.xlsx"        
         self.methods_data = self.extract_methods_data(excel_path)
-        
+        self.if_method_signal.emit(self.methods_data)
         # Widget pour afficher la liste des méthodes (avec colonnes)
         # Layout pour la partie gauche
         self.left_layout = QtWidgets.QVBoxLayout()
@@ -139,7 +139,6 @@ class MethodWidget(QtWidgets.QWidget):
     def extract_methods_data(self,excel_path):
             # Lire le fichier Excel
             df = pd.read_excel(excel_path)
-            #self.if_method_signal.emit(df)
             # Initialiser un dictionnaire pour stocker les données
             methods_data = defaultdict(dict)
 
@@ -216,6 +215,9 @@ class MethodWidget(QtWidgets.QWidget):
 
             # 7. (Optionnel) Sauvegarder dans un fichier cache
             # self.save_to_cache()  # À implémenter si besoin
+
+            # 8. emit signal
+            self.if_method_signal.emit(self.methods_data)
 
     def update_methods_tree(self):
         """Met à jour le QTreeWidget avec les données actuelles de self.methods_data."""
