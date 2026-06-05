@@ -18,7 +18,7 @@ def lca_if(key,method_flows):
     supply_array = lca.supply_array
         
     results_df = pd.DataFrame(columns=["Type",'Flow',"Inventory","CF", 'Activity', 'LCA Score'])
-    for index,if_flows in method_flows.iterrows():
+    for if_flows in method_flows:
         key_flow = ast.literal_eval(if_flows["key"])
         if key_flow in activity_dict :
             results_df.loc[len(results_df)] = {

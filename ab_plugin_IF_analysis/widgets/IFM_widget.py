@@ -22,19 +22,19 @@ class SimpleMethodTable(QtWidgets.QTableWidget):
     """Tableau simple pour afficher les facteurs de caractérisation d'une méthode."""
     def __init__(self, method_name, data):
         super().__init__(len(data), 5)
-        self.setHorizontalHeaderLabels(["Product","Activity","Location","Key", "Factor"])
+        self.setHorizontalHeaderLabels(["Product","Activity","Location","Key", "CF"])
         self.verticalHeader().setVisible(False)
         self.method_name = method_name
         self.read_only = True
         self.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
 
         # Remplit le tableau avec les données
-        for row, (product,activity,location,key, factor) in enumerate(data):
-            self.setItem(row, 0, QtWidgets.QTableWidgetItem(product))
-            self.setItem(row, 1, QtWidgets.QTableWidgetItem(activity))
-            self.setItem(row, 2, QtWidgets.QTableWidgetItem(location))
-            self.setItem(row, 3, QtWidgets.QTableWidgetItem(str(key)))
-            self.setItem(row, 4, QtWidgets.QTableWidgetItem(str(factor)))
+        for row, entry in enumerate(data):
+            self.setItem(row, 0, QtWidgets.QTableWidgetItem(str(entry.get("product", ""))))
+            self.setItem(row, 1, QtWidgets.QTableWidgetItem(str(entry.get("activity", ""))))
+            self.setItem(row, 2, QtWidgets.QTableWidgetItem(str(entry.get("location", ""))))
+            self.setItem(row, 3, QtWidgets.QTableWidgetItem(str(entry.get("key", ""))))
+            self.setItem(row, 4, QtWidgets.QTableWidgetItem(str(entry.get("cf", ""))))
             self.resizeColumnToContents(0)
             self.resizeColumnToContents(1)
 
@@ -52,11 +52,9 @@ class MethodWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Characterization Factors")
-
         # Données améliorées pour chaque méthode : nom, unité, nombre de CF, et données
         excel_path = r"C:\Users\mael.mouhoub\Documents\2-Recherche\5-Git_repositories\ab-plugin-IF_analysis\ab_plugin_IF_analysis\utils\method_input.xlsx"        
         self.methods_data = self.extract_methods_data(excel_path)
-        self.if_method_signal.emit(self.methods_data)
         # Widget pour afficher la liste des méthodes (avec colonnes)
         # Layout pour la partie gauche
         self.left_layout = QtWidgets.QVBoxLayout()
@@ -117,6 +115,8 @@ class MethodWidget(QtWidgets.QWidget):
         self.methods_tree.itemClicked.connect(self.update_method_view)
         self.import_button.clicked.connect(self.importing_function)
 
+        # #emit
+        # self.if_method_signal.emit(self.methods_data)
 
     def update_method_view(self, item, column):
         method_name = item.text(0)
@@ -150,7 +150,7 @@ class MethodWidget(QtWidgets.QWidget):
                 activity = row["activity"]
                 location = row["location"]
                 key = row["key"]
-                factor = row["cf"]
+                cf = row["cf"]
 
                 # Initialiser la structure si la méthode n'existe pas
                 if method not in methods_data:
@@ -160,12 +160,19 @@ class MethodWidget(QtWidgets.QWidget):
                         "data": []
                     }
 
-                # Ajouter le couple (substance, factor) à la liste "data"
-                methods_data[method]["data"].append((product,activity,location,key,factor))
+                # Ajouter les données sous forme de dictionnaire
+                methods_data[method]["data"].append({
+                    "product": product,
+                    "activity": activity,
+                    "location": location,
+                    "key": key,
+                    "cf": cf
+                })
 
             # Mettre à jour le nombre de facteurs (cf_count)
             for method in methods_data:
                 methods_data[method]["cf_count"] = len(methods_data[method]["data"])
+
 
             # Convertir le defaultdict en dict classique
             return dict(methods_data)
@@ -225,3 +232,6 @@ class MethodWidget(QtWidgets.QWidget):
         for name, info in self.methods_data.items():
             item = QtWidgets.QTreeWidgetItem([name, info["unit"], str(info["cf_count"])])
             self.methods_tree.addTopLevelItem(item)
+
+    def emit_initial_signal(self):
+        self.if_method_signal.emit(self.methods_data)

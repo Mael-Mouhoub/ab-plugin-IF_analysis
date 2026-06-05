@@ -31,6 +31,9 @@ class IntermediaryFlowWidget(QWidget):
         self.calcul_widget.result_ef_if_signal.connect(self.graph_result.update_graph)
         self.calcul_widget.result_ef_if_signal.connect(self.graph_result.update_tab)
         self.if_method.if_method_signal.connect(self.calcul_widget.update_if_method)
+        
+        # Émettre le signal après que toutes les connexions soient établies
+        self.if_method.emit_initial_signal()
 
     def add_tab(self, title, widget_input):
         tab = QWidget()
