@@ -20,14 +20,15 @@ def lca_if(key,method_flows):
     results_df = pd.DataFrame(columns=["Type",'Flow',"Inventory","CF", 'Activity', 'LCA Score'])
     for index,if_flows in method_flows.iterrows():
         key_flow = ast.literal_eval(if_flows["key"])
-        results_df.loc[len(results_df)] = {
-        "Type" : "IF",
-        'Flow': if_flows["product"],
-        'Activity': Database(key_flow[0]).get(key_flow[1])["name"],
-        "Inventory":supply_array[activity_dict[key_flow]],
-        "CF":if_flows["cf"],
-        'LCA Score': if_flows["cf"] * supply_array[activity_dict[key_flow]],
-        }
+        if key_flow in activity_dict :
+            results_df.loc[len(results_df)] = {
+            "Type" : "IF",
+            'Flow': if_flows["product"],
+            'Activity': Database(key_flow[0]).get(key_flow[1])["name"],
+            "Inventory":supply_array[activity_dict[key_flow]],
+            "CF":if_flows["cf"],
+            'LCA Score': if_flows["cf"] * supply_array[activity_dict[key_flow]],
+            }
         
     # Extraire les noms des colonnes et les données
     return(results_df)

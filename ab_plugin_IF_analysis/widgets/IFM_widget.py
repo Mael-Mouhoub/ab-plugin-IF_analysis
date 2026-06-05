@@ -53,7 +53,7 @@ class MethodWidget(QtWidgets.QWidget):
         self.setWindowTitle("Characterization Factors")
 
         # Données améliorées pour chaque méthode : nom, unité, nombre de CF, et données
-        excel_path = r"C:\Users\mael.mouhoub\Documents\Recherche\Git_coding\Criticality\Plugin Titouan\plugin_test\utils\method_input.xlsx"        
+        excel_path = r"C:\Users\mael.mouhoub\Documents\2-Recherche\5-Git_repositories\ab-plugin-IF_analysis\ab_plugin_IF_analysis\utils\method_input.xlsx"        
         self.methods_data = self.extract_methods_data(excel_path)
         
         # Widget pour afficher la liste des méthodes (avec colonnes)
