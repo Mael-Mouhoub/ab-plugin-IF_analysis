@@ -1,4 +1,5 @@
 from PySide2 import QtWidgets, QtCore,QtGui
+from PySide2.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QCheckBox, QLabel, QPushButton, QGroupBox, QFileDialog, QMessageBox
 from PySide2.QtCore import Signal
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -102,13 +103,20 @@ class MethodWidget(QtWidgets.QWidget):
         splitter.setSizes([400, 400])
 
         # Layout global
-        layout = QtWidgets.QHBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.addWidget(splitter)
+
+        # Layout import new activity
+        self.import_button = QPushButton("import function")
+        self.import_button.setFixedWidth(200)
+        layout.addWidget(self.import_button)
 
         self.setLayout(layout)
 
         # Connexion
         self.methods_tree.itemClicked.connect(self.update_method_view)
+        self.import_button.clicked.connect(self.importing_function)
+
 
     def update_method_view(self, item, column):
         method_name = item.text(0)
@@ -162,3 +170,56 @@ class MethodWidget(QtWidgets.QWidget):
 
             # Convertir le defaultdict en dict classique
             return dict(methods_data)
+
+    def importing_function(self):
+            # 1. Ouvrir une boîte de dialogue pour sélectionner un fichier Excel
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "Select Excel File",
+                "",
+                "Excel Files (*.xlsx *.xls)"
+            )
+
+            if not file_path:
+                return  # L'utilisateur a annulé
+
+            # 2. Vérifier que le fichier est bien un .xlsx
+            if not file_path.endswith(('.xlsx', '.xls')):
+                QMessageBox.warning(self, "Error", "Please select a valid Excel file (.xlsx or .xls).")
+                return
+
+            # 3. Extraire les données du fichier
+            try:
+                extra_methods = self.extract_methods_data(file_path)
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to read the file: {str(e)}")
+                return
+
+            # 4. Vérifier que le fichier contient des données valides
+            if not extra_methods:
+                QMessageBox.warning(self, "Error", "The file does not contain valid method data.")
+                return
+
+            # 5. Fusionner les nouvelles méthodes avec les existantes
+            # (On utilise update pour éviter les doublons)
+            for method_name, method_info in extra_methods.items():
+                if method_name in self.methods_data:
+                    # Si la méthode existe déjà, on fusionne les données
+                    self.methods_data[method_name]["data"].extend(method_info["data"])
+                    self.methods_data[method_name]["cf_count"] += method_info["cf_count"]
+                else:
+                    # Sinon, on l'ajoute
+                    self.methods_data[method_name] = method_info
+
+            # 6. Mettre à jour le QTreeWidget
+            self.update_methods_tree()
+
+            # 7. (Optionnel) Sauvegarder dans un fichier cache
+            # self.save_to_cache()  # À implémenter si besoin
+
+    def update_methods_tree(self):
+        """Met à jour le QTreeWidget avec les données actuelles de self.methods_data."""
+        self.methods_tree.clear()  # Nettoyer avant de repeupler
+        for name, info in self.methods_data.items():
+            item = QtWidgets.QTreeWidgetItem([name, info["unit"], str(info["cf_count"])])
+            self.methods_tree.addTopLevelItem(item)
