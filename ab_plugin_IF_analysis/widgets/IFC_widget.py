@@ -8,7 +8,7 @@ from ..utils.lca_ef_if import lca_ef,lca_if
 
 
 class CalculWidget(QWidget):
-    result_ef_if_signal = Signal(pd.DataFrame,str,str,str)  # Define a signal
+    result_ef_if_signal = Signal(pd.DataFrame,str,str)  # Define a signal
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -34,36 +34,37 @@ class CalculWidget(QWidget):
         # --- IF-EF Layout ---
         if_ef_layout = QHBoxLayout()
 
-        # --- EF Layout ---
-        ef_layout = QVBoxLayout()
-        ef_layout_include = QHBoxLayout()
+        # # --- EF Layout ---
+        # ef_layout = QVBoxLayout()
+        # ef_layout_include = QHBoxLayout()
 
-        self.include_ef = QCheckBox()
-        self.include_ef.setChecked(True)
-        ef_layout_include.addWidget(self.include_ef)
-        ef_layout_include.addWidget(QLabel("EF Method:"))
-        ef_include_widget = QWidget()
-        ef_include_widget.setLayout(ef_layout_include)
+        # self.include_ef = QCheckBox()
+        # self.include_ef.setChecked(True)
+        # ef_layout_include.addWidget(self.include_ef)
+        # ef_layout_include.addWidget(QLabel("EF Method:"))
+        # ef_include_widget = QWidget()
+        # ef_include_widget.setLayout(ef_layout_include)
 
-        self.ef_method_combo = FilterableComboBox([])
-        self.ef_method_combo.setMaximumWidth(1200)
-        ef_layout.addWidget(ef_include_widget)
-        ef_layout.addWidget(self.ef_method_combo)
+        # self.ef_method_combo = FilterableComboBox([])
+        # self.ef_method_combo.setMaximumWidth(1200)
+        # ef_layout.addWidget(ef_include_widget)
+        # ef_layout.addWidget(self.ef_method_combo)
 
 
-        ef_widget = QWidget()
-        ef_widget.setLayout(ef_layout)
-        if_ef_layout.addWidget(ef_widget)
+        # ef_widget = QWidget()
+        # ef_widget.setLayout(ef_layout)
+        # if_ef_layout.addWidget(ef_widget)
 
         # --- IF Layout ---
         if_layout = QVBoxLayout()
         if_layout_include = QHBoxLayout()
 
-        self.include_if = QCheckBox()
-        self.include_if.setChecked(True)
-        if_layout_include.addWidget(self.include_if)
+        # self.include_if = QCheckBox()
+        # self.include_if.setChecked(True)
+        # if_layout_include.addWidget(self.include_if)
         if_layout_include.addWidget(QLabel("IF Method:"))
         if_include_widget = QWidget()
+        if_include_widget.setMaximumWidth(800)
         if_include_widget.setLayout(if_layout_include)
 
         self.if_method_combo = FilterableComboBox([])
@@ -102,13 +103,13 @@ class CalculWidget(QWidget):
             self.update_activities(self.databases[0])
         else:
             self.activity_combo.set_items([])
-        # --- init methods ef ---
-        list_methods = [str(method) for method in list(bw.methods)]
-        top_methods = [
-            "('EF v3.0', 'energy resources: non-renewable', 'abiotic depletion potential (ADP): fossil fuels')",
-            "('EF v3.0', 'material resources: metals/minerals', 'abiotic depletion potential (ADP): elements (ultimate reserves)')",
-        ]
-        self.ef_method_combo.set_items(top_methods + sorted(list_methods))
+        # # --- init methods ef ---
+        # list_methods = [str(method) for method in list(bw.methods)]
+        # top_methods = [
+        #     "('EF v3.0', 'energy resources: non-renewable', 'abiotic depletion potential (ADP): fossil fuels')",
+        #     "('EF v3.0', 'material resources: metals/minerals', 'abiotic depletion potential (ADP): elements (ultimate reserves)')",
+        # ]
+        # self.ef_method_combo.set_items(top_methods + sorted(list_methods))
         # # --- init methods if ---
         self.if_panda = {}
 
@@ -134,24 +135,24 @@ class CalculWidget(QWidget):
 
     def calcultate_if_ef(self):
         activity_key = self.get_selected_activity()
-        method_ef_name = self.ef_method_combo.current_text()
-        method_ef = ast.literal_eval(method_ef_name)
+        # method_ef_name = self.ef_method_combo.current_text()
+        # method_ef = ast.literal_eval(method_ef_name)
         
         method_if_name = self.if_method_combo.current_text()
         method_if = self.if_panda[method_if_name]["data"] 
         
-        print(f"Sélection: Database : {activity_key[0]}, Activity : {activity_key[1]} , Method_ef : {str(method_ef)}, Method_if : {method_if_name}")
+        print(f"Sélection: Database : {activity_key[0]}, Activity : {activity_key[1]} , Method_if : {method_if_name}")
         
-        if self.include_ef.isChecked() or  method_ef_name == "No method":
-            result_ef = lca_ef(activity_key,method_ef)
-        else :
-            result_ef = None
-        if self.include_if.isChecked() or  method_if_name == "No method":
-            result_if = lca_if(activity_key,method_if)
-        else :
-            result_if = None
-        result_ef_if = pd.concat([result_ef, result_if], axis=0)
-        self.result_ef_if_signal.emit(result_ef_if,self.activity_combo.current_text(),method_ef_name,method_if_name)
+        # if self.include_ef.isChecked() or  method_ef_name == "No method":
+        #     result_ef = lca_ef(activity_key,method_ef)
+        # else :
+        #     result_ef = None
+        # if self.include_if.isChecked() or  method_if_name == "No method":
+        result_if = lca_if(activity_key,method_if)
+        # else :
+        #     result_if = None
+        result_ef_if = result_if
+        self.result_ef_if_signal.emit(result_ef_if,self.activity_combo.current_text(),method_if_name)
         
     def update_if_method(self,if_method_input):
         list_methods_if = if_method_input.keys()

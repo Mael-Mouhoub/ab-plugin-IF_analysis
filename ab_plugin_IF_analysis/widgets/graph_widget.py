@@ -25,7 +25,7 @@ class GraphWidget(QtWidgets.QWidget):
     """Fenêtre affichant un histogramme à barres empilées (une seule barre)."""
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Impact method result for 1 stack")
+        self.setWindowTitle("Impact method result")
         self.setGeometry(100, 100, 600, 500)
         
         layout = QVBoxLayout()
@@ -40,7 +40,7 @@ class GraphWidget(QtWidgets.QWidget):
         
     
 
-    def plot_stacked_bar(self, df,act_name,ef_method_name,if_method_name):
+    def plot_stacked_bar(self, df,act_name,if_method_name):
         """Affiche une barre empilée des 10 plus grands LCA Score par activité."""
         self.canvas.axes.clear()  # Efface l'ancien graphique
         # update changer uniquement la vue graph en agreegant les score des meme crm en mettant comme nom le crm et le displayant 
@@ -51,11 +51,9 @@ class GraphWidget(QtWidgets.QWidget):
         # top_10 = df.nlargest(10, 'LCA Score') # old
         top_10 = aggregated_df.nlargest(10, 'LCA Score') # new
         # Extraire les activités et scores
-        # Flows = top_10['Flow'].values # old
         Flows = top_10['CRM'].values # new
         scores = top_10['LCA Score'].values
         Types = top_10['Type'].values # old
-        #Types = "IF" # new
 
         # Couleurs pour chaque section de la barre empilée
         colors = ['#ff9999', '#66b3ff', '#99ff99', '#ffcc99', '#c2c2f0',
@@ -63,57 +61,56 @@ class GraphWidget(QtWidgets.QWidget):
 
         # Initialiser la position de départ pour l'empilement
         bottom = 0
-        bottom_ef = 0
         bottom_if = 0
         bars = []
-        categories = ['Total', 'IF', 'EF']
+        categories = ['IF']
         x_pos = range(len(categories))  # [0, 1, 2]
 
         for i, (flow, score, type_flow) in enumerate(zip(Flows, scores, Types)):
-            # Barre "Total" (toujours à x=0)
-            bar = self.canvas.axes.bar(x_pos[0], [score], bottom=bottom, color=colors[i], label=flow)
-            bottom += score
-            bars.append(bar)
+            # # Barre "Total" (toujours à x=0)
+            # bar = self.canvas.axes.bar(x_pos[0], [score], bottom=bottom, color=colors[i], label=flow)
+            # bottom += score
+            # bars.append(bar)
 
             if type_flow == "IF":
                 # Barre "IF" (toujours à x=1)
-                bar_if = self.canvas.axes.bar(x_pos[1], [score], bottom=bottom_if, color=colors[i])
+                bar_if = self.canvas.axes.bar(x_pos[0], [score], bottom=bottom_if, color=colors[i], label=flow)
                 bottom_if += score
                 bars.append(bar_if)
 
-            if type_flow == "EF":
-                # Barre "EF" (toujours à x=2)
-                bar_ef = self.canvas.axes.bar(x_pos[2], [score], bottom=bottom_ef, color=colors[i])
-                bottom_ef += score
-                bars.append(bar_ef)
+            # if type_flow == "EF":
+            #     # Barre "EF" (toujours à x=2)
+            #     bar_ef = self.canvas.axes.bar(x_pos[2], [score], bottom=bottom_ef, color=colors[i])
+            #     bottom_ef += score
+            #     bars.append(bar_ef)
                 
-        # Score total pour "Total"
-        self.canvas.axes.text(
-            0, bottom + 0.02 * bottom,  # Position x=0 (barre "Total"), y=légèrement au-dessus
-            f"{bottom:.2e}",
-            ha='center', va='bottom', fontsize=10, fontweight='bold'
-        )
+        # # Score total pour "Total"
+        # self.canvas.axes.text(
+        #     0, bottom + 0.02 * bottom,  # Position x=0 (barre "Total"), y=légèrement au-dessus
+        #     f"{bottom:.2e}",
+        #     ha='center', va='bottom', fontsize=10, fontweight='bold'
+        # )
 
         # Score total pour "IF"
         self.canvas.axes.text(
-            1, bottom_if + 0.02 * bottom_if,  # Position x=1 (barre "IF")
+            0, bottom_if + 0.02 * bottom_if,  # Position x=1 (barre "IF")
             f"{bottom_if:.2e}",
             ha='center', va='bottom', fontsize=10, fontweight='bold'
         )
 
-        # Score total pour "EF"
-        self.canvas.axes.text(
-            2, bottom_ef + 0.02 * bottom_ef,  # Position x=2 (barre "EF")
-            f"{bottom_ef:.2e}",
-            ha='center', va='bottom', fontsize=10, fontweight='bold'
-        )
+        # # Score total pour "EF"
+        # self.canvas.axes.text(
+        #     2, bottom_ef + 0.02 * bottom_ef,  # Position x=2 (barre "EF")
+        #     f"{bottom_ef:.2e}",
+        #     ha='center', va='bottom', fontsize=10, fontweight='bold'
+        # )
         
         # Définir les labels de l'axe x et leur ordre
         self.canvas.axes.set_xticks(x_pos)
         self.canvas.axes.set_xticklabels(categories)
 
         self.canvas.axes.set_ylabel("LCA Score")
-        self.canvas.axes.set_title(f"LCA score - {act_name} \n IF method : {if_method_name}  \n EF Method : {ef_method_name}\n\n")
+        self.canvas.axes.set_title(f"LCA score - {act_name} \n IF method : {if_method_name} \n\n")
         # Légende à l'extérieur, à droite
         self.canvas.axes.legend(
             loc='upper left',
@@ -126,11 +123,11 @@ class GraphWidget(QtWidgets.QWidget):
         self.canvas.draw()
 
 
-    def update_graph(self,df,act_name,ef_method_name,if_method_name) :
+    def update_graph(self,df,act_name,if_method_name) :
         # Générer le graphique
-        self.plot_stacked_bar(df,act_name,ef_method_name,if_method_name)
+        self.plot_stacked_bar(df,act_name,if_method_name)
         
-    def update_tab(self,df,act_name,ef_method_name,if_method_name):
+    def update_tab(self,df,act_name,if_method_name):
         # Effacer le contenu actuel
         self.tab.setRowCount(0)
         top_10 = df.nlargest(20, 'LCA Score').reset_index(drop=True)
