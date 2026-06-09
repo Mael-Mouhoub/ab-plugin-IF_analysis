@@ -8,7 +8,7 @@ from ..utils.lca_ef_if import lca_ef,lca_if
 
 
 class CalculWidget(QWidget):
-    result_ef_if_signal = Signal(pd.DataFrame)  # Define a signal
+    result_ef_if_signal = Signal(pd.DataFrame,str,str,str)  # Define a signal
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -90,9 +90,6 @@ class CalculWidget(QWidget):
         
         self.calculation_button.clicked.connect(self.calcultate_if_ef)
         self.db_combo.selection_validated.connect(self.update_activities)
-        #self.activity_combo.selection_validated.connect(self.get_selected_activity)
-        #self.method_combo.selection_validated.connect(self.get_selected_method)
-        #self.method_combo.selection_validated.connect(self.get_selected_method
         
         self.init_activity()
 
@@ -108,16 +105,13 @@ class CalculWidget(QWidget):
         # --- init methods ef ---
         list_methods = [str(method) for method in list(bw.methods)]
         top_methods = [
-            # "No method",
             "('EF v3.0', 'energy resources: non-renewable', 'abiotic depletion potential (ADP): fossil fuels')",
             "('EF v3.0', 'material resources: metals/minerals', 'abiotic depletion potential (ADP): elements (ultimate reserves)')",
         ]
         self.ef_method_combo.set_items(top_methods + sorted(list_methods))
         # # --- init methods if ---
         self.if_panda = {}
-        # excel_path = r"C:\Users\mael.mouhoub\Documents\2-Recherche\5-Git_repositories\ab-plugin-IF_analysis\ab_plugin_IF_analysis\utils\method_input.xlsx"        
-        # self.if_panda = pd.read_excel(excel_path)
-        # self.update_if_method(self.if_panda)
+
 
     def update_activities(self, db_name):
         """Update the activity ComboBox when a database is selected."""
@@ -141,14 +135,10 @@ class CalculWidget(QWidget):
     def calcultate_if_ef(self):
         activity_key = self.get_selected_activity()
         method_ef_name = self.ef_method_combo.current_text()
-        # if not isinstance(method_ef_name, str):
         method_ef = ast.literal_eval(method_ef_name)
-        # else :
-        #     method_ef = method_ef_name
         
-        #method_if = pd.read_excel("plugin_test/utils/method_input.xlsx") #"No method" #ast.literal_eval(self.method_combo.current_text())
         method_if_name = self.if_method_combo.current_text()
-        method_if = self.if_panda[method_if_name]["data"] #[self.if_panda["method"] == method_if_name]
+        method_if = self.if_panda[method_if_name]["data"] 
         
         print(f"Sélection: Database : {activity_key[0]}, Activity : {activity_key[1]} , Method_ef : {str(method_ef)}, Method_if : {method_if_name}")
         
@@ -161,12 +151,11 @@ class CalculWidget(QWidget):
         else :
             result_if = None
         result_ef_if = pd.concat([result_ef, result_if], axis=0)
-        self.result_ef_if_signal.emit(result_ef_if)
+        self.result_ef_if_signal.emit(result_ef_if,self.activity_combo.current_text(),method_ef_name,method_if_name)
         
     def update_if_method(self,if_method_input):
-        list_methods_if = if_method_input.keys() #list(if_method_input["method"].unique())
+        list_methods_if = if_method_input.keys()
         top_methods = [
-        #     "No method",
         ]
         self.if_method_combo.set_items(top_methods + sorted(list_methods_if))
         self.if_panda = if_method_input

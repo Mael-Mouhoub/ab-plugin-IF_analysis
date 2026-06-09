@@ -17,19 +17,20 @@ def lca_if(key,method_flows):
     activity_dict = lca.activity_dict
     supply_array = lca.supply_array
         
-    results_df = pd.DataFrame(columns=["Type",'Flow',"Inventory","CF", 'Activity', 'LCA Score'])
-    for if_flows in method_flows:
-        key_flow = ast.literal_eval(if_flows["key"])
+    results_df = pd.DataFrame(columns=["Type",'Flow',"Inventory","CF", 'Activity', "CRM", 'LCA Score'])
+    for if_flow in method_flows:
+        key_flow = ast.literal_eval(if_flow["key"])
         if key_flow in activity_dict :
             results_df.loc[len(results_df)] = {
             "Type" : "IF",
-            'Flow': if_flows["product"],
+            'Flow': if_flow["product"],
             'Activity': Database(key_flow[0]).get(key_flow[1])["name"],
             "Inventory":supply_array[activity_dict[key_flow]],
-            "CF":if_flows["cf"],
-            'LCA Score': if_flows["cf"] * supply_array[activity_dict[key_flow]],
+            "CF":if_flow["cf"],
+            "CRM":if_flow["crm"],
+            'LCA Score': if_flow["cf"] * supply_array[activity_dict[key_flow]],
             }
-        
+    
     # Extraire les noms des colonnes et les données
     return(results_df)
 
@@ -68,7 +69,7 @@ def lca_ef(key,method):
         flow_index=flow_index+1
     cf_by_flows_sorted = sorted(cf_by_flows, key=lambda x: x[3] == 0)
 
-    results_df = pd.DataFrame(columns=["Type",'Flow',"Inventory","CF", 'Activity', 'LCA Score'])
+    results_df = pd.DataFrame(columns=["Type",'Flow',"Inventory","CF", 'Activity', "CRM", 'LCA Score'])
     for ef_flow in cf_by_flows_sorted:
         results_df.loc[len(results_df)] = {
         "Type" : "EF",
@@ -76,6 +77,7 @@ def lca_ef(key,method):
         'Activity': "",
         "Inventory":ef_flow[1],
         "CF":ef_flow[2],
+        "CRM" : ef_flow["crm"],
         'LCA Score': ef_flow[3],
         }
     # Extraire les noms des colonnes et les données

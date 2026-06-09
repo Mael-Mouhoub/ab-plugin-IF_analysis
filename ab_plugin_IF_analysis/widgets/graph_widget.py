@@ -15,8 +15,8 @@ class MplCanvas(FigureCanvas):
 class SimpleMethodTable(QtWidgets.QTableWidget):
     """Tableau simple pour afficher les facteurs de caractérisation d'une méthode."""
     def __init__(self):
-        super().__init__(0, 5)  # Initialiser avec 0 lignes, 2 colonnes
-        self.setHorizontalHeaderLabels(["Type","Flow","Inventory" ,"CF","Score"])
+        super().__init__(0, 6)  # Initialiser avec 0 lignes, 2 colonnes
+        self.setHorizontalHeaderLabels(["Type","Flow","Inventory" ,"CF","Score","CRM"])
         self.verticalHeader().setVisible(False)
         self.read_only = True
         self.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
@@ -40,15 +40,23 @@ class GraphWidget(QtWidgets.QWidget):
         
     
 
-    def plot_stacked_bar(self, df):
+    def plot_stacked_bar(self, df,act_name,ef_method_name,if_method_name):
         """Affiche une barre empilée des 10 plus grands LCA Score par activité."""
         self.canvas.axes.clear()  # Efface l'ancien graphique
+        # update changer uniquement la vue graph en agreegant les score des meme crm en mettant comme nom le crm et le displayant 
+        # Aggregate LCA Score by CRM and sum
+        aggregated_df = df.groupby(['CRM', 'Type'], as_index=False)['LCA Score'].sum() 
+        
         # Trier le DataFrame par LCA Score décroissant et prendre les 10 premiers
-        top_10 = df.nlargest(10, 'LCA Score')
+        # top_10 = df.nlargest(10, 'LCA Score') # old
+        top_10 = aggregated_df.nlargest(10, 'LCA Score') # new
         # Extraire les activités et scores
-        Flows = top_10['Flow'].values
+        # Flows = top_10['Flow'].values # old
+        Flows = top_10['CRM'].values # new
         scores = top_10['LCA Score'].values
-        Types = top_10['Type'].values
+        Types = top_10['Type'].values # old
+        #Types = "IF" # new
+
         # Couleurs pour chaque section de la barre empilée
         colors = ['#ff9999', '#66b3ff', '#99ff99', '#ffcc99', '#c2c2f0',
                 '#ffb3e6', '#ff6666', '#66ffcc', '#ff99cc', '#99ccff']
@@ -82,21 +90,21 @@ class GraphWidget(QtWidgets.QWidget):
         # Score total pour "Total"
         self.canvas.axes.text(
             0, bottom + 0.02 * bottom,  # Position x=0 (barre "Total"), y=légèrement au-dessus
-            f"{bottom:.2f}",
+            f"{bottom:.2e}",
             ha='center', va='bottom', fontsize=10, fontweight='bold'
         )
 
         # Score total pour "IF"
         self.canvas.axes.text(
             1, bottom_if + 0.02 * bottom_if,  # Position x=1 (barre "IF")
-            f"{bottom_if:.2f}",
+            f"{bottom_if:.2e}",
             ha='center', va='bottom', fontsize=10, fontweight='bold'
         )
 
         # Score total pour "EF"
         self.canvas.axes.text(
             2, bottom_ef + 0.02 * bottom_ef,  # Position x=2 (barre "EF")
-            f"{bottom_ef:.2f}",
+            f"{bottom_ef:.2e}",
             ha='center', va='bottom', fontsize=10, fontweight='bold'
         )
         
@@ -105,7 +113,7 @@ class GraphWidget(QtWidgets.QWidget):
         self.canvas.axes.set_xticklabels(categories)
 
         self.canvas.axes.set_ylabel("LCA Score")
-        self.canvas.axes.set_title("LCA score - Stack \n IF method : Criticality method  \n EF Method : EF3.0 ADP (ultimate reserve)\n\n")
+        self.canvas.axes.set_title(f"LCA score - {act_name} \n IF method : {if_method_name}  \n EF Method : {ef_method_name}\n\n")
         # Légende à l'extérieur, à droite
         self.canvas.axes.legend(
             loc='upper left',
@@ -118,14 +126,14 @@ class GraphWidget(QtWidgets.QWidget):
         self.canvas.draw()
 
 
-    def update_graph(self,df) :
+    def update_graph(self,df,act_name,ef_method_name,if_method_name) :
         # Générer le graphique
-        self.plot_stacked_bar(df)
+        self.plot_stacked_bar(df,act_name,ef_method_name,if_method_name)
         
-    def update_tab(self,df):
+    def update_tab(self,df,act_name,ef_method_name,if_method_name):
         # Effacer le contenu actuel
         self.tab.setRowCount(0)
-        top_10 = df.nlargest(10, 'LCA Score').reset_index(drop=True)
+        top_10 = df.nlargest(20, 'LCA Score').reset_index(drop=True)
         # Ajouter les lignes nécessaires
         self.tab.setRowCount(len(top_10))
         print(top_10)
@@ -136,5 +144,7 @@ class GraphWidget(QtWidgets.QWidget):
             self.tab.setItem(index, 2, QtWidgets.QTableWidgetItem(str(row["Inventory"])))
             self.tab.setItem(index, 3, QtWidgets.QTableWidgetItem(str(row["CF"])))
             self.tab.setItem(index, 4, QtWidgets.QTableWidgetItem(str(row["LCA Score"])))
+            self.tab.setItem(index, 5, QtWidgets.QTableWidgetItem(row["CRM"]))
+
             # Ajuster la largeur des colonnes au contenu
         self.tab.resizeColumnsToContents()

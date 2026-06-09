@@ -35,6 +35,7 @@ class SimpleMethodTable(QtWidgets.QTableWidget):
             self.setItem(row, 2, QtWidgets.QTableWidgetItem(str(entry.get("location", ""))))
             self.setItem(row, 3, QtWidgets.QTableWidgetItem(str(entry.get("key", ""))))
             self.setItem(row, 4, QtWidgets.QTableWidgetItem(str(entry.get("cf", ""))))
+            self.setItem(row, 4, QtWidgets.QTableWidgetItem(str(entry.get("crm", ""))))
             self.resizeColumnToContents(0)
             self.resizeColumnToContents(1)
 
@@ -151,6 +152,7 @@ class MethodWidget(QtWidgets.QWidget):
                 location = row["location"]
                 key = row["key"]
                 cf = row["cf"]
+                crm = row["crm"]
 
                 # Initialiser la structure si la méthode n'existe pas
                 if method not in methods_data:
@@ -166,7 +168,8 @@ class MethodWidget(QtWidgets.QWidget):
                     "activity": activity,
                     "location": location,
                     "key": key,
-                    "cf": cf
+                    "cf": cf,
+                    "crm": crm
                 })
 
             # Mettre à jour le nombre de facteurs (cf_count)
