@@ -32,7 +32,7 @@ class GraphWidget(QtWidgets.QWidget):
         # Créer le canvas matplotlib
         self.canvas = MplCanvas(self, width=12, height=10, dpi=100)
         self.tab = SimpleMethodTable(["CRM","Flow","Inventory" ,"CF","Score"])
-        self.tab2 = SimpleMethodTable(["CRM","Score"])
+        self.tab2 = SimpleMethodTable(["CRM","Score"]) #(["CRM","Inventory" ,"CF","Score"])
         #Set tab layout
         self.tab_layout = QHBoxLayout()
         self.tab_layout.addWidget(self.tab2)
@@ -174,6 +174,8 @@ class GraphWidget(QtWidgets.QWidget):
         self.tab2.setRowCount(len(filtered_aggregated_df))
         for index, row in filtered_aggregated_df.iterrows():
             self.tab2.setItem(index, 0, QtWidgets.QTableWidgetItem(row["CRM"]))
+            # self.tab.setItem(index, 2, QtWidgets.QTableWidgetItem(f"{row['Inventory']:.2e}"))  # Inventaire en kg de ressource
+            # self.tab.setItem(index, 3, QtWidgets.QTableWidgetItem(f"{row['CF']:.2e}")) # CF pour 1 kg      
             self.tab2.setItem(index, 1, QtWidgets.QTableWidgetItem(f"{row['LCA Score']:.2e}")) 
 
             # Ajuster la largeur des colonnes au contenu
