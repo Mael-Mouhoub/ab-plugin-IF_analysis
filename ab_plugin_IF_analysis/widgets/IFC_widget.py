@@ -4,7 +4,7 @@ from .filterable_combobox import FilterableComboBox
 import brightway2 as bw
 import pandas as pd
 import ast
-from ..utils.lca_ef_if import lca_ef,lca_if
+from ..utils.lca_ef_if import lca_if #, lca_ef
 
 
 class CalculWidget(QWidget):

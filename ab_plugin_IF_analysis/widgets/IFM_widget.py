@@ -21,8 +21,9 @@ def header(text):
 class SimpleMethodTable(QtWidgets.QTableWidget):
     """Tableau simple pour afficher les facteurs de caractérisation d'une méthode."""
     def __init__(self, method_name, data):
-        super().__init__(len(data), 5)
-        self.setHorizontalHeaderLabels(["Product","Activity","Location","Key", "CF"])
+        headers = ["Product","Activity","Location","Key", "CF", "CRM"]
+        super().__init__(len(data), len(headers))
+        self.setHorizontalHeaderLabels(headers)
         self.verticalHeader().setVisible(False)
         self.method_name = method_name
         self.read_only = True
@@ -35,7 +36,7 @@ class SimpleMethodTable(QtWidgets.QTableWidget):
             self.setItem(row, 2, QtWidgets.QTableWidgetItem(str(entry.get("location", ""))))
             self.setItem(row, 3, QtWidgets.QTableWidgetItem(str(entry.get("key", ""))))
             self.setItem(row, 4, QtWidgets.QTableWidgetItem(str(entry.get("cf", ""))))
-            self.setItem(row, 4, QtWidgets.QTableWidgetItem(str(entry.get("crm", ""))))
+            self.setItem(row, 5, QtWidgets.QTableWidgetItem(str(entry.get("crm", ""))))
             self.resizeColumnToContents(0)
             self.resizeColumnToContents(1)
 
@@ -153,6 +154,8 @@ class MethodWidget(QtWidgets.QWidget):
                 key = row["key"]
                 cf = row["cf"]
                 crm = row["crm"]
+                content = row["Content"]
+                cf_unitaire = row["cf_unitaire"]
 
                 # Initialiser la structure si la méthode n'existe pas
                 if method not in methods_data:
@@ -169,7 +172,9 @@ class MethodWidget(QtWidgets.QWidget):
                     "location": location,
                     "key": key,
                     "cf": cf,
-                    "crm": crm
+                    "crm": crm,
+                    "content" : content,
+                    "cf_unitaire" : cf_unitaire,
                 })
 
             # Mettre à jour le nombre de facteurs (cf_count)
@@ -212,14 +217,14 @@ class MethodWidget(QtWidgets.QWidget):
             # 5. Fusionner les nouvelles méthodes avec les existantes
             # (On utilise update pour éviter les doublons)
             for method_name, method_info in extra_methods.items():
-                if method_name in self.methods_data:
-                    # Si la méthode existe déjà, on fusionne les données
-                    self.methods_data[method_name]["data"].extend(method_info["data"])
-                    self.methods_data[method_name]["cf_count"] += method_info["cf_count"]
-                else:
-                    # Sinon, on l'ajoute
-                    self.methods_data[method_name] = method_info
-
+                # if method_name in self.methods_data:
+                #     # # Si la méthode existe déjà, on fusionne les données
+                #     self.methods_data[method_name]["data"].extend(method_info["data"])
+                #     self.methods_data[method_name]["cf_count"] += method_info["cf_count"]
+                # else:
+                #     # Sinon, on l'ajoute
+                    # self.methods_data[method_name] = method_info
+                self.methods_data[method_name] = method_info
             # 6. Mettre à jour le QTreeWidget
             self.update_methods_tree()
 

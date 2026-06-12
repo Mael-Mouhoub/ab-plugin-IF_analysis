@@ -31,8 +31,8 @@ class GraphWidget(QtWidgets.QWidget):
         layout = QVBoxLayout()
         # Créer le canvas matplotlib
         self.canvas = MplCanvas(self, width=12, height=10, dpi=100)
-        self.tab = SimpleMethodTable(["CRM","Flow","Inventory" ,"CF","Score"])
-        self.tab2 = SimpleMethodTable(["CRM","Score"]) #(["CRM","Inventory" ,"CF","Score"])
+        self.tab = SimpleMethodTable(["crm","product","inventory" ,"cf","score"])
+        self.tab2 = SimpleMethodTable(["crm","crm_inventory" ,"cf_unitary","score"])
         #Set tab layout
         self.tab_layout = QHBoxLayout()
         self.tab_layout.addWidget(self.tab2)
@@ -47,23 +47,28 @@ class GraphWidget(QtWidgets.QWidget):
     
 
     def plot_stacked_bar(self, df,act_name,if_method_name):
-        """Affiche une barre empilée des 10 plus grands LCA Score par activité."""
+        """Affiche une barre empilée des 10 plus grands lca_score par activité."""
         self.canvas.axes.clear()  # Efface l'ancien graphique
         # update changer uniquement la vue graph en agreegant les score des meme crm en mettant comme nom le crm et le displayant 
-        # Aggregate LCA Score by CRM and sum
-        aggregated_df = df.groupby(['CRM', 'Type'], as_index=False)['LCA Score'].sum() 
+        # Aggregate lca_score by crm and sum
+        aggregated_df = df.groupby(['crm', 'type'], as_index=False)['lca_score'].sum() 
         
-        # Trier le DataFrame par LCA Score décroissant et prendre les 10 premiers
-        # top_10 = df.nlargest(10, 'LCA Score') # old
-        top_10 = aggregated_df.nlargest(10, 'LCA Score') # new
+        # Trier le DataFrame par lca_score décroissant et prendre les 10 premiers
+        # top_10 = df.nlargest(10, 'lca_score') # old
+        top_10 = aggregated_df.nlargest(10, 'lca_score') # new
         # Extraire les activités et scores
-        Flows = top_10['CRM'].values # new
-        scores = top_10['LCA Score'].values
-        Types = top_10['Type'].values # old
+        Flows = top_10['crm'].values # new
+        scores = top_10['lca_score'].values
+        Types = top_10['type'].values # old
 
         # Couleurs pour chaque section de la barre empilée
         colors = ['#ff9999', '#66b3ff', '#99ff99', '#ffcc99', '#c2c2f0',
                 '#ffb3e6', '#ff6666', '#66ffcc', '#ff99cc', '#99ccff']
+        
+        # Définir la taille de police pour le titre et les axes
+        title_fontsize = 22  # Taille du titre
+        label_fontsize = 20  # Taille des labels (axes)
+        legend_fontsize = 20  # Taille de la légende
 
         # Initialiser la position de départ pour l'empilement
         bottom = 0
@@ -72,15 +77,15 @@ class GraphWidget(QtWidgets.QWidget):
         categories = ['IF']
         x_pos = range(len(categories))  # [0, 1, 2]
 
-        for i, (flow, score, type_flow) in enumerate(zip(Flows, scores, Types)):
+        for i, (product, score, type_flow) in enumerate(zip(Flows, scores, Types)):
             # # Barre "Total" (toujours à x=0)
-            # bar = self.canvas.axes.bar(x_pos[0], [score], bottom=bottom, color=colors[i], label=flow)
+            # bar = self.canvas.axes.bar(x_pos[0], [score], bottom=bottom, color=colors[i], label=product)
             # bottom += score
             # bars.append(bar)
 
             if type_flow == "IF":
                 # Barre "IF" (toujours à x=1)
-                bar_if = self.canvas.axes.bar(x_pos[0], [score], bottom=bottom_if, color=colors[i], label=flow)
+                bar_if = self.canvas.axes.bar(x_pos[0], [score], bottom=bottom_if, color=colors[i], label=product)
                 bottom_if += score
                 bars.append(bar_if)
 
@@ -101,7 +106,7 @@ class GraphWidget(QtWidgets.QWidget):
         self.canvas.axes.text(
             0, bottom_if + 0.02 * bottom_if,  # Position x=1 (barre "IF")
             f"{bottom_if:.2e}",
-            ha='center', va='bottom', fontsize=10, fontweight='bold'
+            ha='center', va='bottom', fontsize=20, fontweight='bold'
         )
 
         # # Score total pour "EF"
@@ -114,13 +119,15 @@ class GraphWidget(QtWidgets.QWidget):
         # Définir les labels de l'axe x et leur ordre
         self.canvas.axes.set_xticks(x_pos)
         self.canvas.axes.set_xticklabels([act_name])
-
-        self.canvas.axes.set_ylabel(if_method_name)
-        self.canvas.axes.set_title(f"Critical raw material footprint of X {act_name} \n with the IF method : {if_method_name} \n")
+        self.canvas.axes.tick_params(axis='x',labelsize=16,)
+        self.canvas.axes.set_ylabel(if_method_name, fontsize=label_fontsize)
+        self.canvas.axes.set_title(f"Critical raw material footprint  : \n FU : X {act_name}; IF method : {if_method_name}",fontsize=title_fontsize, pad=35)  # Espacement supplémentaire sous le titre
         # Légende à l'extérieur, à droite
         self.canvas.axes.legend(
             loc='upper left',
-            bbox_to_anchor=(1, 1)  # (1, 1) = coin supérieur droit, juste à l'extérieur
+            bbox_to_anchor=(1, 1),  # (1, 1) = coin supérieur droit, juste à l'extérieur
+            fontsize=legend_fontsize,
+            reverse=True
         )
         # Ajuste la taille pour laisser de la place à la légende
         #self.canvas.figure.tight_layout(rect=[0, 0, 0.85, 1])
@@ -136,47 +143,47 @@ class GraphWidget(QtWidgets.QWidget):
     def update_tab(self,df,act_name,if_method_name):
         # Effacer le contenu actuel
         self.tab.setRowCount(0)
-        # Calculate the total LCA Score sum
-        total_lca = df['LCA Score'].sum()
+        # Calculate the total lca_score sum
+        total_lca = df['lca_score'].sum()
 
-        aggregated_df = df.groupby(['CRM', 'Type'], as_index=False)['LCA Score'].sum() 
+        aggregated_df = df.groupby(['crm', 'type', 'cf_unitaire'], as_index=False)['lca_score'].sum() 
 
         # Define the 2% cutoff
-        cutoff_1 = 0.0001 * total_lca
+        cutoff_1 = 0 * total_lca
         cutoff_2 = 0 * total_lca
 
-        # Filter rows where LCA Score >= 2% of total
-        filtered_df = df[df['LCA Score'] >= cutoff_1]
-        filtered_aggregated_df = aggregated_df[aggregated_df['LCA Score'] >= cutoff_2]
+        # Filter rows where lca_score >= 2% of total
+        filtered_df = df[df['lca_score'] >= cutoff_1]
+        filtered_aggregated_df = aggregated_df[aggregated_df['lca_score'] >= cutoff_2]
 
-        # Sort by CRM (ascending) and then by LCA Score (descending)
+        # Sort by crm (ascending) and then by lca_score (descending)
         top_crm = filtered_df.sort_values(
-            by=['CRM', 'LCA Score'],
-            ascending=[True, False]  # Sort CRM ascending, LCA Score descending
+            by=['crm', 'lca_score'],
+            ascending=[True, False]  # Sort crm ascending, lca_score descending
         ).reset_index(drop=True)
 
-        # Sort by CRM (ascending) and then by LCA Score (descending)
+        # Sort by crm (ascending) and then by lca_score (descending)
         filtered_aggregated_df = filtered_aggregated_df.sort_values(
-            by=['LCA Score'],
-            ascending=[False]  # Sort CRM ascending, LCA Score descending
+            by=['lca_score'],
+            ascending=[False]  # Sort crm ascending, lca_score descending
         ).reset_index(drop=True)
 
         # Ajouter les lignes nécessaires
         self.tab.setRowCount(len(top_crm))
         # Remplir le tableau
         for index, row in top_crm.iterrows():
-            self.tab.setItem(index, 0, QtWidgets.QTableWidgetItem(row["CRM"]))
-            self.tab.setItem(index, 1, QtWidgets.QTableWidgetItem(row["Flow"]))
-            self.tab.setItem(index, 2, QtWidgets.QTableWidgetItem(f"{row['Inventory']:.2e}"))  
-            self.tab.setItem(index, 3, QtWidgets.QTableWidgetItem(f"{row['CF']:.2e}"))       
-            self.tab.setItem(index, 4, QtWidgets.QTableWidgetItem(f"{row['LCA Score']:.2e}")) 
+            self.tab.setItem(index, 0, QtWidgets.QTableWidgetItem(row["crm"]))
+            self.tab.setItem(index, 1, QtWidgets.QTableWidgetItem(row["product"]))
+            self.tab.setItem(index, 2, QtWidgets.QTableWidgetItem(f"{row['inventory']:.2e}"))  
+            self.tab.setItem(index, 3, QtWidgets.QTableWidgetItem(f"{row['cf']:.2e}"))       
+            self.tab.setItem(index, 4, QtWidgets.QTableWidgetItem(f"{row['lca_score']:.2e}")) 
         
         self.tab2.setRowCount(len(filtered_aggregated_df))
         for index, row in filtered_aggregated_df.iterrows():
-            self.tab2.setItem(index, 0, QtWidgets.QTableWidgetItem(row["CRM"]))
-            # self.tab.setItem(index, 2, QtWidgets.QTableWidgetItem(f"{row['Inventory']:.2e}"))  # Inventaire en kg de ressource
-            # self.tab.setItem(index, 3, QtWidgets.QTableWidgetItem(f"{row['CF']:.2e}")) # CF pour 1 kg      
-            self.tab2.setItem(index, 1, QtWidgets.QTableWidgetItem(f"{row['LCA Score']:.2e}")) 
+            self.tab2.setItem(index, 0, QtWidgets.QTableWidgetItem(row["crm"]))
+            self.tab2.setItem(index, 1, QtWidgets.QTableWidgetItem(f"{(row['lca_score']/row['cf_unitaire']):.2e}"))  # Inventaire en kg de ressource
+            self.tab2.setItem(index, 2, QtWidgets.QTableWidgetItem(f"{row['cf_unitaire']:.2e}")) # cf pour 1 kg      
+            self.tab2.setItem(index, 3, QtWidgets.QTableWidgetItem(f"{row['lca_score']:.2e}")) 
 
             # Ajuster la largeur des colonnes au contenu
         self.tab.resizeColumnsToContents()
